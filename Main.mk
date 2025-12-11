@@ -118,6 +118,12 @@ include $(X4C_BUILD_SYSTEM)/core/definitions.mk
 ##
 ##
 ##
+$(if $(findstring $(space),$(X4C_BOARD)),$(error Invalid X4C_BOARD Configure: "$(X4C_BOARD)"),)
+$(if $(filter .%,$(X4C_BOARD)),$(error Invalid X4C_BOARD Configure: "$(X4C_BOARD)"),)
+
+##
+##
+##
 ifneq ("$(X4C_BUILD_LOCAL_DEFINE)","")
 include $(X4C_BUILD_LOCAL_DEFINE)
 endif
