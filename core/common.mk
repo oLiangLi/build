@@ -211,9 +211,17 @@ add_local_source_file    = $(eval LOCAL_SRC_FILES   += $1)
 
 # ----------------------------------------------------------------------------
 # Function: add_general_source_files_under
+# Arguments: 1: source file path ...
 # ----------------------------------------------------------------------------
 add_general_source_files_under = \
 	$(foreach __ty,$(X4C_GENERAL_SOURCE_EXT),$(call x4c_add_all_source_files_under_recursive,$1,*.$(__ty)))
+
+# ----------------------------------------------------------------------------
+# Function: add_general_source_files_non_recursive
+# Arguments: 1: source file path ...
+# ----------------------------------------------------------------------------
+add_general_source_files_non_recursive = \
+	$(foreach __ty,$(X4C_GENERAL_SOURCE_EXT),$(call x4c_add_all_source_files_under,$1,*.$(__ty)))
 
 # ----------------------------------------------------------------------------
 #	Function: clear-local-vars
