@@ -16,6 +16,11 @@ endif
 $(call x4c_register_local_variant, LOCAL_MODULE)
 
 ##
+## strict mode (default) ...
+##
+$(call x4c_register_local_variant, LOCAL_STRICT)
+
+##
 ## Absolute path name of source files ...
 ##
 $(call x4c_register_local_variant, LOCAL_SRC_FILES_A)
