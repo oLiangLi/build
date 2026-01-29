@@ -21,6 +21,11 @@ $(call x4c_register_local_variant, LOCAL_MODULE)
 $(call x4c_register_local_variant, LOCAL_STRICT)
 
 ##
+## local-module-output : $(LOCAL_DEPENDS)
+##
+$(call x4c_register_local_variant, LOCAL_DEPENDS)
+
+##
 ## Absolute path name of source files ...
 ##
 $(call x4c_register_local_variant, LOCAL_SRC_FILES_A)
