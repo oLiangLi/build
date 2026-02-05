@@ -2,6 +2,15 @@
 <head>
     <title> jsCipherSuite Testing </title>
     <script src="./js/jsWorld.js"></script>
+    <style>
+        td {
+            width: 200px;
+        }
+        #vv {
+            width: 800px;
+            height: 8em;
+        }
+    </style>
 </head>
 <body>
 <label for="v"> Value </label><input id="v" maxlength="128"/>
@@ -9,6 +18,16 @@
 <button id="t1"> ...T1... </button>
 <button id="t2"> ...T2... </button>
 <button id="t3"> ...T3... </button>
+
+<p>
+    <label for='vv'></label><textarea id='vv'></textarea><br/>
+    <button onclick="foobar()">foobar</button>
+    <label for='c1'></label><input type="checkbox" id='c1' checked> zHASH_v
+    <label for='c2'></label><input type="checkbox" id='c2' checked> rLANG_v
+    <label for='c3'></label><input type="checkbox" id='c3' checked> rLANG_s
+    <label for='c4'></label><input type="checkbox" id='c4' checked> vDATE_t
+    <div id='el'></div>
+</p>
 
 <script>
     async function Sleep(ms) {
@@ -205,6 +224,197 @@
     });
 
 </script>
+
+<script>
+        const re_magic = /^[a-z0-9@$]{5}$/i;
+        const re_value = /^(0x)?([a-f0-9]{1,8})$/i;
+        const re_date  = /^([1-9][0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([0-5][0-9]):([0-5][0-9]):([0-5][0-9])Z$/;
+        const re_name  = /([a-z0-9@$#.\-_:]+)/ig;
+
+        function rLANG_DECLARE_MAGIC_X(a0, a1, a2, a3, a4) {
+            let v = ((((0x3F & (a0))) << 26) | ((0x3F & (a1)) << 20) | ((0x3F & (a2)) << 14) | ((0x3F & (a3)) << 8) | ((0x3F & (a4)) << 2) | 3);
+            if(v < 0)
+                v += 0x100000000;
+            return v;
+        }
+
+        function rLANG_DECLARE_MAGIC_Vc(cc) {
+            cc = 0x40 | (cc & 0x3F);
+
+            switch (cc) {
+            case 0x5B:
+            case 0x5C:
+            case 0x5D:
+            case 0x5E:
+            case 0x5F:
+                cc = 0x31 - 0x5B + cc;
+                break;
+
+            case 0x60:
+                cc = 0x30;
+                break;
+
+            case 0x7B:
+            case 0x7C:
+            case 0x7D:
+            case 0x7E:
+                cc = 0x36 - 0x7B + cc;
+                break;
+
+            case 0x7F:
+                cc = 0x24;
+                break;
+            }
+
+            return cc;
+        }
+
+        function rLANG_DECLARE_MAGIC_Xc(cc) {
+            if ((cc >= 0x40 && cc <= 0x5A) || (cc >= 0x61 && cc <= 0x7A)) {
+                cc &= 0x3F;
+            }
+            else {
+                switch (cc) {
+                case 0x30:
+                    cc = 0x20;
+                    break;
+
+                case 0x31:
+                case 0x32:
+                case 0x33:
+                case 0x34:
+                case 0x35:
+                    cc = 0x1B - 0x31 + cc;
+                    break;
+
+                case 0x36:
+                case 0x37:
+                case 0x38:
+                case 0x39:
+                    cc = 0x3B - 0x36 + cc;
+                    break;
+
+                default:
+                    cc = 0x3F;
+                    break;
+                }
+            }
+
+            return cc;
+        }
+
+        function rLANG_DECLARE_MAGIC_Xs(s) {
+            if(!(s instanceof Buffer))
+                s = Buffer.from(s);
+
+            return rLANG_DECLARE_MAGIC_X(
+                rLANG_DECLARE_MAGIC_Xc(s[0]),
+                rLANG_DECLARE_MAGIC_Xc(s[1]),
+                rLANG_DECLARE_MAGIC_Xc(s[2]),
+                rLANG_DECLARE_MAGIC_Xc(s[3]),
+                rLANG_DECLARE_MAGIC_Xc(s[4]));
+        }
+
+        function rLANG_DECLARE_MAGIC_Vs(magic) {
+            let buffer = [];
+            for(let i = 0; i < 5; ++i)
+                buffer.push(rLANG_DECLARE_MAGIC_Vc(magic >> (26 - 6 * i)));
+            return Buffer.from(buffer).toString();
+        }
+
+        function rLANG_CALCHASH_Xs(s) {
+            let v = new Uint32Array([0]);
+            if(!(s instanceof Buffer))
+                s = Buffer.from(s);
+            for(let cc of s)
+                v[0] = 0x3001 * v[0] + cc;
+            return (v[0] ^ s.length) & 0x7fffffff;
+        }
+
+        const date2020 = Date.UTC(2020, 0, 1);
+        function rLANG_DATE_V(yy, mm, dd, HH, MM, SS) {
+            mm -= 1;
+
+            const value = Date.UTC(yy, mm, dd, HH, MM, SS), date = new Date(value);
+            if(date.getUTCFullYear() === yy && date.getUTCMonth() === mm && date.getUTCDate() === dd)
+                return (value - date2020) / 1000;
+            return void 0;
+        }
+
+        function foobar() {
+            let val = document.getElementById('vv').value, list = [], mp = new Set(), result;
+
+            const c1_checked = document.getElementById('c1').checked;
+            const c2_checked = document.getElementById('c2').checked;
+            const c3_checked = document.getElementById('c3').checked;
+            const c4_checked = document.getElementById('c4').checked;
+
+            el.innerHTML = '';
+            while((result = re_name.exec(val)) !== null) {
+                let v = result[1], m;
+                if(mp.has(v))
+                    continue;
+                mp.add(v);
+
+                if(c1_checked) {
+                    list.push([
+                        'zHASH_v', v, `0x${('00000000' + rLANG_CALCHASH_Xs(v).toString(16).toUpperCase()).slice(-8)}`
+                    ]);
+                }
+
+                if(c2_checked && (m = v.match(re_value))) {
+                    list.push([
+                        'rLANG_v', v, rLANG_DECLARE_MAGIC_Vs(parseInt(m[2], 16))
+                    ]);
+                }
+
+                if(c3_checked && v.match(re_magic)) {
+                    list.push([
+                        'rLANG_s', v, `0x${('00000000' + rLANG_DECLARE_MAGIC_Xs(v).toString(16).toUpperCase()).slice(-8)}`
+                    ]);
+                }
+
+                if(c4_checked && (m = v.match(re_date))) {
+                    const date = rLANG_DATE_V(m[1]|0, m[2]|0, m[3]|0, m[4]|0, m[5]|0, m[6]|0);
+                    if(typeof date === 'number') {
+                        list.push([
+                            'vDATE_t', v, date
+                        ]);
+                    }
+                }
+            }
+
+            if(!list.length)
+                return;
+
+            list = list.sort((a, b)=> {
+                let x = a[0], y = b[0];
+
+                if(x === y) {
+                    x = a[1];
+                    y = b[1];
+                }
+
+                return x < y ? -1 : 1;
+            })
+
+            let table = document.createElement('table');
+            let tbody = document.createElement('tbody');
+            table.setAttribute('border', '2');
+
+            for(let item of list) {
+                let tr = document.createElement('tr');
+                for(let i = 0; i < 3; ++i) {
+                    let td = document.createElement('td');
+                    td.appendChild(document.createTextNode(item[i]));
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+            document.getElementById('el').appendChild(table);
+        }
+    </script>
 
 </body>
 </html>
